@@ -7,6 +7,7 @@ import { auth } from "./firebase.js";
 import { onAuthStateChanged } from "firebase/auth";  // ← YANGI QATOR: v9 uchun
 import { useEffect, useState } from 'react';
 import './App.css'
+import MyVisits from './pages/MyVisits.jsx';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -32,6 +33,8 @@ function App() {
     <Routes>
       <Route path="/login" element={!user ? <Login /> : <Navigate to="/admin" />} />
       <Route path="/admin" element={user ? <AdminPanel /> : <Navigate to="/login" />} />
+      <Route path="/mening-t" element={<MyVisits/>} />
+<Route path="/tashriflarim" element={<MyVisits />} />
       <Route path="*" element={<Navigate to="/admin" />} />
     </Routes>
   );
