@@ -1,0 +1,5 @@
+{
+  "name": "ARM Visitor Management System",
+  "description": "A comprehensive platform for ARM (Information Resource Center) to track and manage daily visitor registrations, including faculty, department, and group statistics.",
+  "requestFramePermissions": []
+}
