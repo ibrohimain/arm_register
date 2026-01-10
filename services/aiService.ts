@@ -1,8 +1,8 @@
-
 import { GoogleGenAI } from "@google/genai";
 import { Visitor } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// ❌ process.env.API_KEY emas
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_API_KEY });
 
 export const getVisitorInsights = async (visitors: Visitor[]) => {
   const visitorSummary = visitors.map(v => 
