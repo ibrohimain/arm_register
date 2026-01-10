@@ -54,11 +54,11 @@ const Dashboard: React.FC<DashboardProps> = ({ visitors, loading, onRefresh }) =
   const sectionList = [
     { name: 'ARM ga tashrif', color: 'bg-blue-500' },
     { name: 'Xizmat Ko\'rsatish Bo\'limi', color: 'bg-indigo-500' },
-    { name: 'Elektron axborot resurslar bo\'limi', color: 'bg-emerald-500' },
-    { name: 'Ilmiy-Uslubiy va Axborot-Ma\'lumot', color: 'bg-purple-500' },
-    { name: 'Direktor qabuli', color: 'bg-rose-500' },
     { name: 'Axborot-Kutubxona Resurslarini Butlash', color: 'bg-amber-500' },
-    { name: 'Xorijiy Axborot-Kutubxona Resurslari', color: 'bg-teal-500' }
+    { name: 'Ilmiy-Uslubiy va Axborot-Ma\'lumot', color: 'bg-purple-500' },
+    { name: 'Elektron axborot resurslar bo\'limi', color: 'bg-emerald-500' },
+    { name: 'Xorijiy Axborot-Kutubxona Resurslari', color: 'bg-teal-500' },
+    { name: 'Direktor qabuli', color: 'bg-rose-500' }
   ];
 
   return (

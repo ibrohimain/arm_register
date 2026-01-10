@@ -1,8 +1,10 @@
 
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getAnalytics } from "firebase/analytics";
-import { getAuth } from "firebase/auth";
+// Firebase modular SDK imports with standardized quotes and clean formatting
+// Fix: Use @firebase/ prefix for modular imports to resolve exported member errors
+import { initializeApp } from '@firebase/app';
+import { getFirestore } from '@firebase/firestore';
+import { getAnalytics } from '@firebase/analytics';
+import { getAuth } from '@firebase/auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDq-U3suDJJdn9upi5XL3vK2Tx3Ct8qzgQ",
@@ -14,6 +16,7 @@ const firebaseConfig = {
   measurementId: "G-HY6DLKH3ME"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
