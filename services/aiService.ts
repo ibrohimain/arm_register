@@ -1,8 +1,9 @@
 import { GoogleGenAI } from "@google/genai";
 import { Visitor } from "../types";
 
-// ❌ process.env.API_KEY emas
-const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_API_KEY });
+const ai = new GoogleGenAI({
+  apiKey: import.meta.env.VITE_GOOGLE_API_KEY // ❗ shu qism
+});
 
 export const getVisitorInsights = async (visitors: Visitor[]) => {
   const visitorSummary = visitors.map(v => 
@@ -12,16 +13,9 @@ export const getVisitorInsights = async (visitors: Visitor[]) => {
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Quyidagi ARM (Axborot-resurs markazi) tashrif buyuruvchilari ma'lumotlarini tahlil qil va qisqacha o'zbek tilida hisobot ber:
-      ${visitorSummary}
-      
-      Hisobotda:
-      1. Eng ko'p tashrif buyurilgan bo'lim.
-      2. Qaysi fakultet eng faol.
-      3. Tashrif buyuruvchilar tarkibi (ichki/tashqi) haqida xulosa.`,
-      config: {
-        thinkingConfig: { thinkingBudget: 0 }
-      }
+      contents: `Quyidagi ARM tashrif buyuruvchilarini tahlil qil va qisqacha hisobot ber:
+${visitorSummary}`,
+      config: { thinkingConfig: { thinkingBudget: 0 } }
     });
 
     return response.text;
