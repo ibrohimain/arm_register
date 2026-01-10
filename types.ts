@@ -24,4 +24,12 @@ export interface Visitor {
   updatedAt?: any;
 }
 
+export interface Note {
+  id?: string;
+  content: string;
+  author: string;
+  createdAt: any;
+  priority: 'low' | 'medium' | 'high';
+}
+
 export type ViewState = 'dashboard' | 'register' | 'edit' | 'history' | 'stats' | 'ranking';
