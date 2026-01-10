@@ -11,6 +11,9 @@ interface VisitorFormProps {
 
 const VisitorForm: React.FC<VisitorFormProps> = ({ initialData, onSuccess, onCancel }) => {
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<'single' | 'bulk'>('single');
+  const [bulkNames, setBulkNames] = useState('');
+  
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -34,6 +37,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ initialData, onSuccess, onCan
         section: initialData.section,
         visitDate: initialData.visitDate
       });
+      setMode('single');
     }
   }, [initialData]);
 
@@ -94,10 +98,32 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ initialData, onSuccess, onCan
 
     setLoading(true);
     try {
-      if (initialData?.id) {
-        await updateVisitor(initialData.id, formData);
+      if (mode === 'single') {
+        if (initialData?.id) {
+          await updateVisitor(initialData.id, formData);
+        } else {
+          await registerVisitor(formData);
+        }
       } else {
-        await registerVisitor(formData);
+        // Guruhli kiritish logikasi
+        const lines = bulkNames.split('\n').filter(line => line.trim().length > 0);
+        if (lines.length === 0) {
+          alert("Kamida bitta ism kiriting!");
+          setLoading(false);
+          return;
+        }
+
+        for (const line of lines) {
+          const parts = line.trim().split(/\s+/);
+          const firstName = parts[0] || '';
+          const lastName = parts.slice(1).join(' ') || '';
+          
+          await registerVisitor({
+            ...formData,
+            firstName,
+            lastName
+          });
+        }
       }
       onSuccess();
     } catch (error) {
@@ -111,57 +137,98 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ initialData, onSuccess, onCan
   const isDeptFilled = !!formData.department;
 
   return (
-    <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden mb-12">
-      <div className={`p-6 border-b border-gray-100 ${initialData ? 'bg-amber-50' : 'bg-blue-50'}`}>
-        <h2 className={`text-xl font-bold ${initialData ? 'text-amber-900' : 'text-blue-900'}`}>
-          {initialData ? "Tashrif ma'lumotlarini tahrirlash" : "Yangi tashrifchini ro'yxatga olish"}
-        </h2>
-        <p className={`text-sm mt-1 ${initialData ? 'text-amber-700' : 'text-blue-700'}`}>
-          Barcha maydonlarni to'g'ri to'ldirganingizga ishonch hosil qiling.
-        </p>
+    <div className="max-w-3xl mx-auto bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden mb-12">
+      <div className={`p-8 border-b border-gray-100 ${initialData ? 'bg-amber-50' : 'bg-blue-600'}`}>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 className={`text-2xl font-black ${initialData ? 'text-amber-900' : 'text-white'}`}>
+              {initialData ? "Tahrirlash" : "Ro'yxatga olish"}
+            </h2>
+            <p className={`text-sm mt-1 font-medium ${initialData ? 'text-amber-700' : 'text-blue-100'}`}>
+              {mode === 'single' ? "Yakka tartibda kiritish" : "Guruhli tashrifni kiritish (Jamoaviy)"}
+            </p>
+          </div>
+          
+          {!initialData && (
+            <div className="flex bg-white/20 p-1 rounded-xl backdrop-blur-md">
+              <button 
+                type="button"
+                onClick={() => setMode('single')}
+                className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${mode === 'single' ? 'bg-white text-blue-600 shadow-sm' : 'text-white hover:bg-white/10'}`}
+              >
+                Yakka
+              </button>
+              <button 
+                type="button"
+                onClick={() => setMode('bulk')}
+                className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${mode === 'bulk' ? 'bg-white text-blue-600 shadow-sm' : 'text-white hover:bg-white/10'}`}
+              >
+                Guruhli
+              </button>
+            </div>
+          )}
+        </div>
       </div>
       
-      <form onSubmit={handleSubmit} className="p-8 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700">Ismi</label>
-            <input 
-              required
-              type="text" 
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm"
-              value={formData.firstName}
-              onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-              placeholder="Aziz"
-            />
+      <form onSubmit={handleSubmit} className="p-8 space-y-8">
+        {mode === 'single' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-left-4 duration-500">
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Ismi</label>
+              <input 
+                required
+                type="text" 
+                className="w-full px-5 py-4 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all font-medium text-gray-700 bg-gray-50/50"
+                value={formData.firstName}
+                onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                placeholder="Aziz"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Familyasi</label>
+              <input 
+                required
+                type="text" 
+                className="w-full px-5 py-4 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all font-medium text-gray-700 bg-gray-50/50"
+                value={formData.lastName}
+                onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                placeholder="Karimov"
+              />
+            </div>
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700">Familyasi</label>
-            <input 
+        ) : (
+          <div className="space-y-2 animate-in fade-in slide-in-from-right-4 duration-500">
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1 flex justify-between">
+              <span>Foydalanuvchilar ro'yxati</span>
+              <span className="text-blue-500">Har birini yangi qatordan yozing</span>
+            </label>
+            <textarea 
               required
-              type="text" 
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm"
-              value={formData.lastName}
-              onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-              placeholder="Karimov"
-            />
+              rows={6}
+              className="w-full px-5 py-4 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all font-medium text-gray-700 bg-gray-50/50 leading-relaxed"
+              value={bulkNames}
+              onChange={(e) => setBulkNames(e.target.value)}
+              placeholder="Azizov Aziz&#10;Karimov Jamshid&#10;Alieva Madina..."
+            ></textarea>
+            <p className="text-[10px] text-gray-400 italic">Namuna: Ism Familiya (yoki shunchaki Ism)</p>
           </div>
-        </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700">Tashrif kuni</label>
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Tashrif kuni</label>
             <input 
               required
               type="date" 
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all shadow-sm"
+              className="w-full px-5 py-4 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none transition-all font-medium text-gray-700 bg-gray-50/50"
               value={formData.visitDate}
               onChange={(e) => setFormData({...formData, visitDate: e.target.value})}
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700">Foydalanuvchi turi</label>
-            <div className="flex gap-4 p-2.5 border border-gray-300 rounded-lg bg-gray-50 h-[46px] items-center">
-              <label className="flex items-center gap-2 cursor-pointer">
+            <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Foydalanuvchi turi</label>
+            <div className="flex gap-4 p-4 border border-gray-200 rounded-2xl bg-gray-50/50 h-[60px] items-center">
+              <label className="flex-1 flex items-center justify-center gap-2 cursor-pointer py-2 rounded-xl transition-all hover:bg-white">
                 <input 
                   type="radio" 
                   name="userType" 
@@ -169,9 +236,9 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ initialData, onSuccess, onCan
                   checked={formData.userType === 'ichki'}
                   onChange={() => setFormData({...formData, userType: 'ichki'})}
                 />
-                <span className="text-xs font-medium text-gray-700">Ichki</span>
+                <span className="text-xs font-black text-gray-600 uppercase tracking-wider">Ichki</span>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label className="flex-1 flex items-center justify-center gap-2 cursor-pointer py-2 rounded-xl transition-all hover:bg-white">
                 <input 
                   type="radio" 
                   name="userType" 
@@ -179,31 +246,22 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ initialData, onSuccess, onCan
                   checked={formData.userType === 'tashqi'}
                   onChange={() => setFormData({...formData, userType: 'tashqi'})}
                 />
-                <span className="text-xs font-medium text-gray-700">Tashqi</span>
+                <span className="text-xs font-black text-gray-600 uppercase tracking-wider">Tashqi</span>
               </label>
             </div>
           </div>
         </div>
 
         {formData.userType === 'ichki' && (
-          <div className="p-6 bg-blue-50/50 rounded-xl border border-blue-100 space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
-            <div className="flex items-center gap-2 mb-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-xs font-medium text-blue-700 italic">
-                {!isFacultyFilled && !isDeptFilled ? "Fakultet yoki Kafedradan kamida bittasini tanlang." : "Bajarildi."}
-              </p>
-            </div>
-            
+          <div className="p-8 bg-blue-50/30 rounded-[2rem] border border-blue-100/50 space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700 flex items-center justify-between">
+                <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest ml-1 flex justify-between">
                   Fakultet 
-                  {!isDeptFilled && <span className="text-[10px] text-red-500 font-bold uppercase tracking-widest">Majburiy*</span>}
+                  {!isDeptFilled && <span className="text-red-400">Majburiy*</span>}
                 </label>
                 <select 
-                  className={`w-full px-4 py-2.5 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none shadow-sm transition-all ${!isFacultyFilled && !isDeptFilled ? 'border-blue-300 ring-1 ring-blue-100' : 'border-gray-300'}`}
+                  className={`w-full px-5 py-4 rounded-2xl border bg-white focus:ring-4 focus:ring-blue-100 outline-none transition-all text-sm font-bold ${!isFacultyFilled && !isDeptFilled ? 'border-blue-300' : 'border-gray-200'}`}
                   value={formData.faculty}
                   onChange={(e) => setFormData({...formData, faculty: e.target.value})}
                 >
@@ -213,12 +271,12 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ initialData, onSuccess, onCan
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700 flex items-center justify-between">
+                <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest ml-1 flex justify-between">
                   Kafedra
-                  {!isFacultyFilled && <span className="text-[10px] text-red-500 font-bold uppercase tracking-widest">Majburiy*</span>}
+                  {!isFacultyFilled && <span className="text-red-400">Majburiy*</span>}
                 </label>
                 <select 
-                  className={`w-full px-4 py-2.5 rounded-lg border focus:ring-2 focus:ring-blue-500 outline-none shadow-sm transition-all ${!isFacultyFilled && !isDeptFilled ? 'border-blue-300 ring-1 ring-blue-100' : 'border-gray-300'}`}
+                  className={`w-full px-5 py-4 rounded-2xl border bg-white focus:ring-4 focus:ring-blue-100 outline-none transition-all text-sm font-bold ${!isFacultyFilled && !isDeptFilled ? 'border-blue-300' : 'border-gray-200'}`}
                   value={formData.department}
                   onChange={(e) => setFormData({...formData, department: e.target.value})}
                 >
@@ -228,13 +286,13 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ initialData, onSuccess, onCan
               </div>
               
               <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-semibold text-gray-700">Guruh</label>
+                <label className="text-[10px] font-black text-blue-400 uppercase tracking-widest ml-1">Guruh raqami</label>
                 <input 
                   type="text" 
-                  className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"
+                  className="w-full px-5 py-4 rounded-2xl border border-gray-200 bg-white focus:ring-4 focus:ring-blue-100 outline-none transition-all font-bold text-gray-700"
                   value={formData.group}
                   onChange={(e) => setFormData({...formData, group: e.target.value})}
-                  placeholder="Guruh raqami (masalan: 12-21)"
+                  placeholder="Masalan: 12-21"
                 />
               </div>
             </div>
@@ -242,9 +300,9 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ initialData, onSuccess, onCan
         )}
 
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-gray-700">Foydalanadigan bo'limi</label>
+          <label className="text-xs font-black text-gray-400 uppercase tracking-widest ml-1">Foydalanadigan bo'limi</label>
           <select 
-            className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none shadow-sm"
+            className="w-full px-5 py-4 rounded-2xl border border-gray-200 focus:ring-4 focus:ring-blue-100 outline-none bg-gray-50/50 font-bold text-gray-700 transition-all"
             value={formData.section}
             onChange={(e) => setFormData({...formData, section: e.target.value as LibrarySection})}
           >
@@ -256,14 +314,14 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ initialData, onSuccess, onCan
           <button 
             type="button" 
             onClick={onCancel}
-            className="px-8 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+            className="px-8 py-4 rounded-2xl border border-gray-200 text-gray-500 font-black text-xs uppercase tracking-widest hover:bg-gray-50 transition-all active:scale-95"
           >
             Bekor qilish
           </button>
           <button 
             disabled={loading}
             type="submit" 
-            className={`px-10 py-2.5 rounded-lg text-white font-bold shadow-md transition-all flex items-center gap-3 disabled:opacity-70 ${initialData ? 'bg-amber-600 hover:bg-amber-700' : 'bg-blue-600 hover:bg-blue-700'}`}
+            className={`px-12 py-4 rounded-2xl text-white font-black text-xs uppercase tracking-widest shadow-xl transition-all flex items-center gap-3 disabled:opacity-70 active:scale-95 ${initialData ? 'bg-amber-600 shadow-amber-100' : 'bg-blue-600 shadow-blue-100'}`}
           >
             {loading ? (
                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -271,7 +329,7 @@ const VisitorForm: React.FC<VisitorFormProps> = ({ initialData, onSuccess, onCan
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
             ) : null}
-            {loading ? 'Saqlanmoqda...' : (initialData ? 'Yangilash' : 'Ro\'yxatdan o\'tkazish')}
+            {loading ? 'Saqlanmoqda...' : (initialData ? 'O\'zgarishlarni saqlash' : mode === 'bulk' ? 'Barchasini kiritish' : 'Ro\'yxatdan o\'tkazish')}
           </button>
         </div>
       </form>
