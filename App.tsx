@@ -11,6 +11,7 @@ import Statistics from './components/Statistics';
 import Ranking from './components/Ranking';
 import Login from './components/Login';
 import { getAllVisitors, deleteVisitor } from './services/visitorService';
+import './index.css'
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
